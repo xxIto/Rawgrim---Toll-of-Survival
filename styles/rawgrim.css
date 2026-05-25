@@ -1,0 +1,269 @@
+/* ========================================================================
+   RAWGRIM CORE AESTHETIC: THE LEDGER OF OVERLOAD (ELDEN RING STYLE)
+   ======================================================================== */
+
+/* Kontainer Utama Kartu Obrolan - Tekstur Batu Obsidian Tua */
+.rawgrim-backlash-prompt-card, 
+.rawgrim-sys-card {
+    font-family: 'Times New Roman', serif;
+    background: #0d0c0b !important;
+    border: 1px solid #2d261f !important;
+    border-top: 2px solid #541e1e !important; 
+    border-radius: 0px !important;
+    box-shadow: none !important;
+    padding: 12px !important;
+    margin: 6px 0;
+    position: relative;
+}
+
+/* Modifikasi Warna Pembatas Sesuai Konteks Kelangkaan */
+.rawgrim-sys-card.catalyst { border-top-color: #7a664d !important; }
+.rawgrim-sys-card.rest-short { border-top-color: #2a3d4a !important; }
+.rawgrim-sys-card.rest-long { border-top-color: #1e3a24 !important; }
+.rawgrim-sys-card.starvation { 
+    border-top-color: #8c2222 !important; 
+    background: #140505 !important;
+}
+
+/* Judul Kartu - Tipografi Monarki Kuno */
+.rawgrim-card-title {
+    font-family: 'Times New Roman', serif;
+    font-size: 1.15em;
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #c4b4a3 !important;
+    border-bottom: 1px solid #2d261f;
+    padding-bottom: 6px;
+    margin: 0 0 10px 0;
+    text-align: center;
+}
+
+/* Sub-teks Chronicle Batasan Survival */
+.rawgrim-card-sub {
+    font-family: 'Signika', sans-serif;
+    font-size: 0.88em;
+    color: #857a6e;
+    line-height: 1.4;
+    margin: 6px 0;
+    text-align: justify;
+}
+
+/* Tabel Kompak Parameter Angka */
+.rawgrim-table-compact {
+    width: 100%;
+    border-collapse: collapse;
+    background: #060505;
+    margin: 8px 0;
+}
+
+.rawgrim-table-compact th {
+    font-family: 'Times New Roman', serif;
+    font-size: 0.78em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #63594f;
+    border: 1px solid #1c1815;
+    padding: 5px;
+    background: #090807;
+    font-weight: normal;
+}
+
+.rawgrim-table-compact td {
+    font-family: 'Times New Roman', serif;
+    font-size: 1.15em;
+    color: #a8998a;
+    border: 1px solid #1c1815;
+    padding: 6px;
+    text-align: center;
+}
+
+/* Kisi Kendali Tombol GM */
+.rawgrim-gm-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 10px;
+}
+
+.rawgrim-btn-flat {
+    background: #171412 !important;
+    color: #8f8173 !important;
+    border: 1px solid #2d261f !important;
+    border-radius: 0px !important;
+    padding: 6px 10px !important;
+    font-family: 'Times New Roman', serif !important;
+    font-size: 0.85em !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.rawgrim-btn-flat:hover {
+    background: #241f1b !important;
+    color: #c4b4a3 !important;
+    border-color: #42382e !important;
+}
+
+.rawgrim-btn-danger-flat {
+    background: #210d0d !important;
+    color: #c29999 !important;
+    border: 1px solid #421b1b !important;
+}
+
+.rawgrim-btn-danger-flat:hover {
+    background: #331313 !important;
+    color: #e6b8b8 !important;
+}
+
+.rawgrim-btn-success-flat {
+    background: #0d1c11 !important;
+    color: #99c2a1 !important;
+    border: 1px solid #1b4224 !important;
+}
+
+.rawgrim-btn-success-flat:hover {
+    background: #142b1a !important;
+    color: #b8e6c1 !important;
+}
+
+/* Peluas Ukuran Jendela Jendela Dialog Kustom */
+.rawgrim-dialog-window-large {
+    min-width: 420px !important;
+}
+
+/* Baris Pengaturan Jumlah Logistik */
+.rawgrim-sustenance-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #060505;
+    border: 1px solid #1c1815;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+}
+
+.rawgrim-sustenance-label {
+    font-family: 'Times New Roman', serif;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #8f8173;
+}
+
+/* Kotak Kontrol Angka Konsumsi */
+.rawgrim-sustenance-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rawgrim-sustenance-count {
+    font-family: 'Times New Roman', serif;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #c4b4a3;
+    width: 25px;
+    text-align: center;
+}
+
+/* Indikator Tiga Fase Warna Dinamis */
+.rg-status-zero {
+    color: #bf3f3f !important; 
+    text-shadow: 0 0 4px rgba(191, 63, 63, 0.4);
+}
+
+.rg-status-min {
+    color: #cca43b !important; 
+    text-shadow: 0 0 4px rgba(204, 164, 59, 0.4);
+}
+
+.rg-status-full {
+    color: #3b8c4c !important; 
+    text-shadow: 0 0 4px rgba(59, 140, 76, 0.4);
+}
+
+/* Sektor Gaya Hidup Koin Down Time */
+.rawgrim-lifestyle-box {
+    background: #060505;
+    border: 1px solid #1c1815;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.rawgrim-gold-display {
+    font-family: 'Times New Roman', serif;
+    font-size: 1.1em;
+    color: #cca43b;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 4px;
+}
+
+/* Prasasti Peringatan Bahaya Kelaparan */
+.rawgrim-sustenance-warning {
+    border: 1px solid #421b1b;
+    background: #1c0d0d;
+    padding: 10px;
+    margin-top: 12px;
+}
+
+/* ========================================================================
+   CRITICAL BREAKDOWN OVERLAY: CINEMATIC SHATTER (ELDEN RING STYLE)
+   ======================================================================== */
+#rawgrim-shatter-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(5, 4, 4, 0.96);
+    z-index: 9999999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    font-family: 'Times New Roman', serif;
+}
+
+.rawgrim-shatter-box {
+    text-align: center;
+    padding: 50px 80px;
+    border-top: 1px solid #3d332a;
+    border-bottom: 1px solid #3d332a;
+    background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(18,15,13,0.9) 25%, rgba(18,15,13,0.9) 75%, rgba(0,0,0,0) 100%);
+    position: relative;
+}
+
+.rawgrim-shatter-icon {
+    font-size: 2.5em !important;
+    color: #541e1e;
+    margin-bottom: 15px;
+    opacity: 0.8;
+}
+
+.rawgrim-shatter-title {
+    color: #8c2222 !important;
+    font-size: 2.2em !important;
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    margin: 0;
+    font-weight: normal;
+    text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.9);
+}
+
+.rawgrim-shatter-text {
+    color: #857a6e;
+    font-size: 1.05em;
+    margin: 12px 0 0 0;
+    letter-spacing: 2px;
+    font-style: italic;
+}
