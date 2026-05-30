@@ -1,111 +1,147 @@
 # Rawgrim: The Toll of Survival
 
-An official tactical extension for the **DnD5e** system on Foundry Virtual Tabletop, engineered specifically for grimdark settings, hardcore survival campaigns, and the unforgiving rules of the *Rawgrim Saga*. 
+Rawgrim: The Toll of Survival is an unofficial Foundry Virtual Tabletop module for dnd5e campaigns that want harsher survival, dangerous magic, and GM-facing attrition tools.
 
-*The Toll of Survival* strips away the effortless luxury of magical recovery and heroic resilience. It introduces an interconnected web of anatomical decay, logistical starvation, and arcane feedback. Every spell cast fractures the weaver's soul; every hour spent marching through corrupted miasma demands biological tribute. If the flesh is not sustained, it decays. If the spirit is overtaxed, the machine shatters.
+The module is built around four connected pressures:
 
----
+- Food and water matter during rests.
+- Spellcasting builds Resonance Points.
+- Arcane overload can leave lasting corruption marks.
+- Catalysts, equipment, and prosthetics can degrade under pressure.
 
-## Core Systems & Features
+This module is designed for grim survival campaigns. It is not affiliated with Foundry Gaming, Wizards of the Coast, or any official Dungeons & Dragons product.
 
-### 1. The Sustenance Ledger & Dynamic Starvation
-The standard resting mechanics are replaced with a strict, resource-gated transaction terminal. When characters initiate a rest under the **Gritty Realism** variant (8-Hour Short Rest, 7-Day Long Rest Vigil), the module intercepts the prompt and forces an inventory accounting ledger.
+## Compatibility
 
-* **Rigid Resource Demands:** Short Rests strictly demand **1 Ration** and **1 Water (Pint)**. Long Rests require **7 Rations** and **7 Water (Pints)**.
-* **The Hunger Penalties:** Failing to meet resource thresholds inflicts devastating biological consequences.
-    * *Short Rest Deficit:* Inflicts **+1 Exhaustion Level** and interrupts standard hit dice deployment.
-    * *Long Rest Deficit (Partial - 3 to 6 portions):* Limits recovery and forces the flesh into **Exhaustion Level 2**.
-    * *Severe Deprivation (Under 3 portions):* Completely nullifies spell slot and hit point rejuvenation, condemning the character to **Exhaustion Level 3**.
-* **Wadah Protection Logic:** The system intelligently excludes item containers like *Waterskins* from being consumed as raw quantity units, instead scanning and docking the explicit commodity item **Water (Pint)**.
-* **Downtime Lifestyle Funding:** When resting within settlements, players can substitute physical rations for currency via a downtime dropdown selection, shifting costs dynamically based on the narrative narrative chosen:
+- Foundry VTT: minimum 14, verified 14.361
+- System: dnd5e
+- Required module: libWrapper
 
-| Lifestyle Tier | Financial Cost Multiplier | Narrative Condition |
-| :--- | :--- | :--- |
-| **Cheap Narrative** | 0.5x Base Cost | Simple broth, polluted waters, raw desperation. |
-| **Standard Lifestyle** | 1.0x Base Cost | Clean tavern fare, secure lodging, reliable supplies. |
-| **Luxury Narrative** | 2.0x Base Cost | High-faction banquets, pristine distillates, total comfort. |
+## Features
 
-### 2. Soul Resonance & Arcane Backlash
-Magic in Rawgrim is not a free commodity—it is a violent manipulation of ambient pressure that threatens the physical integrity of the caster's mortal vessel.
+### Rest and Survival
 
-* **Resonance Point Accumulation (RP):** Casting a spell of 1st-level or higher generates **Resonance Points** scaled by your configured multiplier (**Spell Level** × **Multiplier**).
-* **The Breaking Threshold:** As a character gains levels, their capacity to contain internal feedback tightens:
-    * *Levels 1–2:* 20 RP Threshold
-    * *Levels 3–4:* 19 RP Threshold
-    * *Levels 5–6:* 18 RP Threshold
-    * *Levels 7–8:* 17 RP Threshold
-    * *Level 9+:* 16 RP Threshold
-* **The Arcane Overload Prompt:** Exceeding the threshold forces an immediate **Arcane Overload Prompt** into the chat log. The Game Master can manually enforce a catastrophe, absolve the caster by divine decree, or force a contained **d20 Breakdown Check** against the current RP score.
+- Intercepts short rest and long rest.
+- Tracks ration and water spending.
+- Supports normal and gritty rest variants.
+- Supports gold funding for long-rest supplies.
+- Applies exhaustion penalties when supplies are not enough.
 
-### 3. Anatomical Corruption & Prosthetic Overload
-Accumulating failures during Arcane Overloads leaves permanent, corruptive scars upon the mortal body, tracked as **The Marks**.
+Gritty long-rest supply thresholds:
 
-* **Mechanical Breakdown:** When a character's total number of failed backlashes advances into a new corruption stage (*Early*, *Intermediate*, *Advanced*), their body releases a violent surge of kinetic feedback.
-* **The Shatter Overlay:** Any installed iron prosthetics, specialized mechanisms, or prosthetic limbs in their inventory are instantly rendered **[OVERLOADED]**. Their active attunements are broken, equipment configurations unlinked, and all underlying magical passive effects disabled until mechanical recalibration is performed.
+| Supplies | Result |
+| --- | --- |
+| 7 days | Safe |
+| 5-6 days | Exhaustion 1 |
+| 3-4 days | Exhaustion 2 |
+| 0-2 days | Exhaustion 3 |
 
-### 4. Catalyst Gatekeeping (The Laws of Scarcity)
-Arcane energies refuse to manifest without a physical medium to anchor them. 
+### Arcane Resonance
 
-* **Global Enforcement:** When enabled, all spellcasters must possess an active item named **Material Catalyst** in their inventory to cast spells of 1st-level or higher. If absent, a cinematic screen warning covers the display and blocks the slot deployment completely.
-* **The Usage Die:** Material Catalysts utilize an adaptive attrition step die (`d8` → `d6` → `d4` → *Expended*). Rolling a `1` or `2` during a spell cast degrades the catalyst, eventually crumbling it to ash.
+- Adds Resonance Points when an actor casts leveled spells.
+- Uses configurable spell-level multiplier.
+- Sends GM-only overload prompts when RP reaches the actor threshold.
+- Supports GM control checks, manual Backlash, and manual Contain.
+- Prevents duplicate pending overload prompts for the same actor.
+- Supports player-facing cantrip strain prompts.
 
----
+### Material Catalyst
 
-## Installation Guide
+- Optional catalyst requirement for spellcasting.
+- Supports global enforcement or per-actor control.
+- Tracks catalyst usage die: d8 to d6 to d4 to expended.
+- Lets actor owners roll catalyst usage when prompted.
 
-### Prerequisites
-This module strictly requires the following external framework to handle upstream method interceptions safely:
-* **libWrapper** (Available for free via the Foundry VTT Package Browser).
+### The Marks
 
-### Manifest Installation
-1. Log into your Foundry VTT Setup configuration screen.
-2. Navigate to the **Add-on Modules** tab and click **Install Module**.
-3. Paste the following manifest URL into the text field at the bottom:
-   `https://your-repository-link/rawgrim-toll-of-survival/module.json`
-4. Click **Install** and wait for the transmission to complete.
+- Tracks corruption stage and mark count.
+- Stages: Early, Intermediate, Advanced.
+- Backlash failure advances The Marks.
+- Stage transition can overload installed prosthetics.
+
+### Equipment Integrity
+
+- Tracks Durability Die for weapons and armor.
+- Supports degradation from d10 to d8 to d6 to d4 to damaged.
+- Creates player/GM roll prompts.
+- Supports GM repair workflow.
+- Tracks overloaded prosthetics and Ignis calibration days.
+
+### GM Dashboard
+
+- Adds a GM dashboard scene control.
+- Sorts actor cards by urgency.
+- Summarizes pending overload, damage, injury, and other danger states.
+- Provides quick actions for RP, cantrip strain, catalyst, marks, injuries, equipment integrity, and Ignis calibration.
+- Keeps manual overrides collapsed until needed.
+
+## Installation
+
+### Foundry Package Browser
+
+Once this module is approved in the Foundry package listing, install it from:
+
+Foundry Setup -> Add-on Modules -> Install Module
+
+Search for:
+
+Rawgrim: The Toll of Survival
+
+### Manifest URL
+
+Until the package is listed, install it manually with the release manifest URL:
+
+```text
+https://github.com/YOUR_GITHUB_USERNAME/rawgrim-toll-of-survival/releases/latest/download/module.json
+```
+
+Replace `YOUR_GITHUB_USERNAME` with the final GitHub account or organization name.
 
 ### Manual Installation
-1. Extract the compressed module archive into your server's application directory:
-   `FoundryVTT/Data/modules/rawgrim-toll-of-survival`
-2. Relaunch the host server or refresh the World configuration page.
 
----
+1. Download `rawgrim-toll-of-survival.zip` from the latest release.
+2. Extract it into your Foundry user data folder:
 
-## Configuration Settings
+```text
+Data/modules/rawgrim-toll-of-survival
+```
 
-Navigate to `Game Settings` → `Configure Settings` → `Module Settings` to customize the mechanical difficulty of your world:
+3. Restart Foundry or refresh the Setup screen.
+4. Enable the module inside your world.
 
-| Setting Name | Configuration Type | Default Value | Functional Explanation |
-| :--- | :--- | :--- | :--- |
-| **Global Catalyst Enforcement** | `Boolean` | `false` | If enabled, forces all casting tokens to require a physical Material Catalyst item. |
-| **Resonance Multiplier** | `Number (1-5)` | `2` | The mathematical value multiplied by the spell level to calculate incoming Resonance Points. |
-| **Sustenance Rest Variant** | `Dropdown` | `Gritty Realism` | Toggles between standard pacing and scaled 7-day logistical consumption parameters. |
-| **Base Ration Cost (GP)** | `Number` | `0.5` | The base financial value of one day's food portion for downtime calculations. |
-| **Base Water Cost (GP)** | `Number` | `0.2` | The base financial value of one day's water supply for downtime calculations. |
+## Settings
 
----
+Open:
 
-## Usage Instructions
+Game Settings -> Configure Settings -> Module Settings
 
-### Engaging the Ledger (Players)
-1. Click the standard **Short Rest** or **Long Rest** button on your character sheet.
-2. The custom *Sustenance Ledger* window will open, displaying your exact physical stock of food and water.
-3. Use the **+** and **-** flat controls to commit resources to your rest session.
-4. **Observe the Color Indicators:**
-    * **Red:** Zero allocation. Committing will trigger an immediate exhaustion collapse.
-    * **Yellow:** Partial preservation. You are conserving supplies but will face state penalties upon waking.
-    * **Green:** Full biological satisfaction. Rejuvenation parameters are stable.
-5. Confirm the rest. The system will calculate updates, apply structural item reductions in a single atomic database batch, and execute standard recovery adjustments.
+Available settings:
 
-### The Regulation Desk (Game Masters)
-Select any player-controlled Token on the active scene map and open the **Token HUD** (Right-Click). Click the custom **Skull Icon** on the left control column to open the **Regulation Desk**:
+| Setting | Default | Purpose |
+| --- | --- | --- |
+| Global Catalyst Enforcement | false | Requires catalysts for all leveled spellcasting. |
+| Resonance Multiplier | 2 | Multiplies spell level into Resonance Points. |
+| Sustenance Rest Variant | Gritty Realism | Controls 1-day or 7-day long rest supply scale. |
+| Base Ration Cost | 0.5 gp | Used for gold-funded rests. |
+| Base Water Cost | 0.2 gp | Used for gold-funded rests. |
 
-* **Requires Catalyst Toggle:** Manually exempt specific characters (such as innate monstrous casters or unique factions) from global catalyst check mandates.
-* **Resonance Counter (RP):** Manually adjust, increment, or purge accumulated Resonance Points following narrative milestones or environmental cleansing circles.
-* **The Marks Tracker:** Track and manipulate total failed backlashes to force or delay stage transitions.
-* **Recalibrate Mechanism:** Click this success terminal to instantly repair all **[OVERLOADED]** prosthetics in the target character's inventory, returning item names to normal and restoring their functional passive statuses.
+## Release Checklist
 
----
+Before publishing a new version:
 
-> ### 📜 World Auditor Decree
-> *The Toll of Survival is not a module designed to facilitate power fantasy. It is an impartial executioner of systemic attrition. Ensure your players understand that in the Rawgrim Saga, iron rusts, gold burns, and the flesh always remembers what it owes to the soil.*
+1. Update `version` in `module.json`.
+2. Update the `download` URL in `module.json` to the matching tag.
+3. Update `CHANGELOG.md`.
+4. Create a ZIP where `module.json` is at the root of the archive.
+5. Attach both `module.json` and `rawgrim-toll-of-survival.zip` to the GitHub release.
+6. Test installation from the release manifest URL.
+
+## Legal
+
+This project is an unofficial module for Foundry Virtual Tabletop.
+
+Foundry Virtual Tabletop is a trademark of Foundry Gaming, LLC. Dungeons & Dragons and dnd5e-related trademarks belong to their respective owners. This module does not include paid rulebook content, adventure text, artwork, or official game content.
+
+## License
+
+Released under the MIT License. See `LICENSE`.
