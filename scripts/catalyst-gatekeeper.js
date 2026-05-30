@@ -22,7 +22,7 @@ Hooks.once('setup', () => {
             const actorDependent = actor.getFlag('rawgrim-toll-of-survival', 'isCatalystDependent') || false;
             
             if (globalEnforced === true || actorDependent === true) {
-                const catalystItem = actor.items.find(i => i.name?.toLowerCase()?.includes('material catalyst'));
+                const catalystItem = globalThis.RawgrimSurvival.getActiveCatalyst(actor);
                 if (!catalystItem) {
                     if (globalThis.RawgrimSurvival.tampilkanPeringatanLayarTengah) {
                         globalThis.RawgrimSurvival.tampilkanPeringatanLayarTengah(actor.name, item.name);
@@ -40,15 +40,16 @@ Hooks.once('setup', () => {
             
             if (globalEnforced === true || actorDependent === true) {
                 if ((item.system.level ?? 0) > 0) {
+                    const castLevel = globalThis.RawgrimSurvival.getSpellCastLevel(actor, item, config, options, result);
                     setTimeout(() => {
-                        if (globalThis.RawgrimSurvival.eksekusiUjiDaduKatalis) {
-                            globalThis.RawgrimSurvival.eksekusiUjiDaduKatalis(actor, `Casting Level ${item.system.level} Spell (*${item.name}*)`);
+                        if (globalThis.RawgrimSurvival.kirimPermintaanRollCatalyst) {
+                            globalThis.RawgrimSurvival.kirimPermintaanRollCatalyst(actor, `Casting ${item.name} at level ${castLevel}`);
                         }
                     }, 500);
                 }
             }
             if (globalThis.RawgrimSurvival.prosesResonansiMantraSINKRON) {
-                globalThis.RawgrimSurvival.prosesResonansiMantraSINKRON(actor, item, config, options);
+                globalThis.RawgrimSurvival.prosesResonansiMantraSINKRON(actor, item, config, options, result);
             }
         }
 

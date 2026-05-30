@@ -28,26 +28,43 @@ globalThis.RawgrimSurvival.tampilkanShatterLayarTengah = function() {
     }, 3500);
 };
 
-globalThis.RawgrimSurvival.prosesKegagalanBacklashAktor = async function(actor) {
+globalThis.RawgrimSurvival.applyMarksAdvance = async function(actor, options = {}) {
     if (!actor) return;
-    
-    const currentFailures = actor.getFlag('rawgrim-toll-of-survival', 'backlashFailures') || 0;
-    const oldStage = globalThis.RawgrimSurvival.getBacklashStageName(currentFailures);
-    
-    const newFailures = currentFailures + 1;
-    const newStage = globalThis.RawgrimSurvival.getBacklashStageName(newFailures);
-    await actor.setFlag('rawgrim-toll-of-survival', 'backlashFailures', newFailures);
+
+    const reason = options.reason || "Backlash failure";
+    const source = options.source || "Laws of Rawgrim";
+    const showCinematic = options.showCinematic !== false;
+    const overloadProsthetics = options.overloadProsthetics !== false;
+    const marksResult = await globalThis.RawgrimSurvival.advanceActorMarks(actor);
+    const oldStage = marksResult.oldState.stageName;
+    const newStage = marksResult.newState.stageName;
+    const stageLimit = marksResult.newState.stageLimit ? `/${marksResult.newState.stageLimit}` : "";
+    const escapedReason = foundry.utils.escapeHTML
+        ? foundry.utils.escapeHTML(reason)
+        : String(reason).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
     
     let markContent = `
-        <div class="rawgrim-sys-card" style="border-top-color: #541e1e !important;">
-            <p class="rawgrim-card-sub" style="color: #bf3f3f; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 1px;">The Marks Advance.</p>
-            <p class="rawgrim-card-sub" style="margin: 4px 0 0 0;">${actor.name} accumulates a new mark of corruption. Total Failed Backlashes: <strong>${newFailures}</strong> [${newStage}].</p>
+        <div class="rawgrim-sys-card marks">
+            <h4 class="rawgrim-card-title">The Marks Advance</h4>
+            <p class="rawgrim-card-sub"><strong>${actor.name}</strong> gains a mark of corruption.</p>
+            <table class="rawgrim-table-compact">
+                <thead><tr><th>Trigger</th><th>Stage</th><th>Marks</th></tr></thead>
+                <tbody><tr><td>${escapedReason}</td><td>${newStage}</td><td>${marksResult.newState.stageCount}${stageLimit}</td></tr></tbody>
+            </table>
+            <p class="rawgrim-card-note">${marksResult.newState.stageDescription}</p>
+            ${marksResult.nearTransition ? `<p class="rawgrim-card-note rg-status-warning"><strong>Warning:</strong> only a few marks remain before the next stage.</p>` : ""}
         </div>
     `;
-    await ChatMessage.create({ content: markContent, speaker: { alias: 'Laws of Rawgrim' } });
+    await ChatMessage.create({ content: markContent, speaker: { alias: source } });
 
-    if (oldStage !== newStage) {
-        const prosthetics = actor.items.filter(i => i?.name?.toLowerCase()?.includes('prosthetic'));
+    if (marksResult.stageChanged) {
+        if (showCinematic) globalThis.RawgrimSurvival.tampilkanCinematicNotice?.(
+            "Stage Transition: Overload",
+            `${actor.name}'s corruption advances to ${newStage}.`,
+            "fas fa-burst"
+        );
+
+        const prosthetics = overloadProsthetics ? globalThis.RawgrimSurvival.getActorProsthetics(actor) : [];
         let itemLockedCount = 0;
 
         for (let item of prosthetics) {
@@ -75,54 +92,61 @@ globalThis.RawgrimSurvival.prosesKegagalanBacklashAktor = async function(actor) 
             }
         }
 
+        const transitionContent = `
+            <div class="rawgrim-sys-card marks">
+                <h3 class="rawgrim-card-title">Stage Transition: Overload</h3>
+                <p class="rawgrim-card-sub"><strong>${actor.name}</strong> advances from ${oldStage} to ${newStage}.</p>
+                <p class="rawgrim-card-note"><i class="fas fa-link-slash"></i> Overloaded mechanisms: ${itemLockedCount}.</p>
+            </div>
+        `;
+        await ChatMessage.create({ content: transitionContent, speaker: { alias: 'Arcane Detonation' } });
+
         if (itemLockedCount > 0) {
             await actor.prepareData();
             if (actor.sheet?.rendered) actor.sheet.render(false);
 
             globalThis.RawgrimSurvival.tampilkanShatterLayarTengah();
-
-            let transitionContent = `
-                <div class="rawgrim-backlash-prompt-card" style="border-top-color: #8c2222 !important;">
-                    <h3 class="rawgrim-card-title" style="color: #bf3f3f !important;">Stage Transition: Overload</h3>
-                    <p class="rawgrim-card-sub">As ${actor.name}'s corruptive marks advance from <strong>${oldStage}</strong> to <strong>${newStage}</strong>, all installed iron mechanisms enter immediate breakdown.</p>
-                    <p class="rawgrim-card-sub" style="font-weight: bold; color: #bf3f3f; margin: 4px 0 0 0;"><i class="fas fa-link-slash"></i> Total Mechanisms Extinguished: ${itemLockedCount}</p>
-                </div>
-            `;
-            await ChatMessage.create({ content: transitionContent, speaker: { alias: 'Arcane Detonation' } });
         }
     }
+
+    return marksResult;
+};
+
+globalThis.RawgrimSurvival.prosesKegagalanBacklashAktor = async function(actor) {
+    return globalThis.RawgrimSurvival.applyMarksAdvance(actor, {
+        reason: "Backlash failure",
+        source: "Laws of Rawgrim",
+        showCinematic: true,
+        overloadProsthetics: true
+    });
 };
 
 globalThis.RawgrimSurvival.pemicuPeringatanBacklashGM = async function(actor, totalRP, threshold) {
+    const safeActorName = this.escapeHTML(actor?.name || "Unknown Actor");
     const chatContent = `
         <div class="rawgrim-backlash-prompt-card" data-actor-id="${actor.id}" data-total-rp="${totalRP}" data-threshold="${threshold}">
-            <h3 class="rawgrim-card-title">Arcane Overload Impending</h3>
-            <p class="rawgrim-card-sub">The spellcaster's vessel strains under ambient pressure. Arcane Resonance has violated the structural threshold of the flesh.</p>
+            <h3 class="rawgrim-card-title">Arcane Overload</h3>
+            <p class="rawgrim-card-sub"><strong>${safeActorName}</strong> has more Resonance Points than their body can safely hold.</p>
             
             <table class="rawgrim-table-compact">
-                <thead><tr><th>Accumulated Score (DC)</th><th>Threshold Limit</th></tr></thead>
-                <tbody><tr><td style="color: #bf3f3f;">${totalRP} RP</td><td>${threshold} RP</td></tr></tbody>
+                <thead><tr><th>Current RP</th><th>Limit</th></tr></thead>
+                <tbody><tr><td style="color: #bf3f3f;">${totalRP}</td><td>${threshold}</td></tr></tbody>
             </table>
             
             <div class="gm-only-controls rawgrim-gm-grid">
-                <button class="rg-vtt-roll-btn rawgrim-btn-flat"><i class="fas fa-dice-d20"></i> Roll Contained Check</button>
+                <button class="rg-vtt-roll-btn rawgrim-btn-flat"><i class="fas fa-dice-d20"></i> Roll Control Check</button>
                 <div style="display: flex; gap: 4px; width: 100%;">
-                    <button class="rg-manual-fail-btn rawgrim-btn-flat rawgrim-btn-danger-flat" style="flex: 1;"><i class="fas fa-skull"></i> Enforce Failure</button>
-                    <button class="rg-manual-pass-btn rawgrim-btn-flat rawgrim-btn-success-flat" style="flex: 1;"><i class="fas fa-check"></i> Absolve</button>
+                    <button class="rg-manual-fail-btn rawgrim-btn-flat rawgrim-btn-danger-flat" style="flex: 1;"><i class="fas fa-skull"></i> Backlash</button>
+                    <button class="rg-manual-pass-btn rawgrim-btn-flat rawgrim-btn-success-flat" style="flex: 1;"><i class="fas fa-check"></i> Contain</button>
                 </div>
             </div>
         </div>
     `;
-    await ChatMessage.create({ content: chatContent, speaker: { alias: 'Laws of Rawgrim' } });
+    await ChatMessage.create({ content: chatContent, whisper: this.getGMUserIds(), speaker: { alias: 'Laws of Rawgrim' } });
 };
 
-globalThis.RawgrimSurvival.prosesResonansiMantraSINKRON = async function(actor, item, config, options) {
-    let tingkatSlotMantra = item.system?.level ?? 0;
-    if (config && typeof config === 'object') {
-        if (config.spellLevel !== undefined) tingkatSlotMantra = config.spellLevel;
-        else if (config.slotLevel !== undefined) tingkatSlotMantra = config.slotLevel;
-        else if (config.level !== undefined) tingkatSlotMantra = config.level;
-    }
+globalThis.RawgrimSurvival.prosesResonansiMantraSINKRON = async function(actor, item, config, options, result = null) {
+    let tingkatSlotMantra = this.getSpellCastLevel(actor, item, config, options, result);
 
     if (tingkatSlotMantra === 0) return;
 
@@ -143,19 +167,179 @@ globalThis.RawgrimSurvival.prosesResonansiMantraSINKRON = async function(actor, 
     const gmIds = game.users.filter(u => u.isGM).map(u => u.id);
     if (gmIds.length > 0) {
         await ChatMessage.create({
-            content: `<div class="rawgrim-sys-card" style="border-top-color: #2d261f !important;"><p class="rawgrim-card-sub" style="margin:0; text-align:center;"><strong>Resonance Update:</strong> ${actor.name} (+${rpMasuk} RP for Slot Level ${tingkatSlotMantra}) | Total: ${newRP}/${threshold} RP</p></div>`,
+            content: `
+                <div class="rawgrim-sys-card" style="border-top-color: #2d261f !important;">
+                    <h4 class="rawgrim-card-title">Resonance Update</h4>
+                    <p class="rawgrim-card-sub"><strong>${actor.name}</strong> gains ${rpMasuk} RP from a level ${tingkatSlotMantra} spell.</p>
+                    <table class="rawgrim-table-compact">
+                        <thead><tr><th>Added</th><th>Total</th></tr></thead>
+                        <tbody><tr><td>${rpMasuk} RP</td><td>${newRP}/${threshold} RP</td></tr></tbody>
+                    </table>
+                </div>
+            `,
             whisper: gmIds, speaker: { alias: 'System Telemetry' }
         });
     }
 
-    if (newRP >= threshold) {
-        await this.pemicuPeringatanBacklashGM(actor, newRP, threshold);
-    }
+    await this.checkAndPromptOverload(actor, newRP);
+};
+
+globalThis.RawgrimSurvival.kirimPermintaanRollCantrip = async function(actor) {
+    if (!actor) return;
+
+    const playerOwners = game.users
+        .filter(user => !user.isGM && actor.testUserPermission(user, "OWNER"))
+        .map(user => user.id);
+
+    const whisper = playerOwners.length > 0
+        ? playerOwners.concat(game.users.filter(user => user.isGM).map(user => user.id))
+        : game.users.filter(user => user.isGM).map(user => user.id);
+
+    const chatContent = `
+        <div class="rawgrim-cantrip-roll-card" data-actor-id="${actor.id}">
+            <h4 class="rawgrim-card-title">Minor Magic Strain</h4>
+            <p class="rawgrim-card-sub"><strong>${actor.name}</strong> has used enough minor magic to risk Resonance buildup.</p>
+            <p class="rawgrim-card-note">Private request: only the actor owner and GM can see this prompt. Roll 1d6. On a 1, gain 1 RP.</p>
+            <button type="button" class="rg-cantrip-roll-btn rawgrim-btn-flat"><i class="fas fa-dice-d6"></i> Roll Strain Check</button>
+        </div>
+    `;
+
+    await ChatMessage.create({
+        content: chatContent,
+        whisper,
+        speaker: { alias: 'Laws of Rawgrim' }
+    });
 };
 
 Hooks.on('renderChatMessage', (message, html, data) => {
     const root = html instanceof HTMLElement ? html : html[0];
     if (!root) return;
+
+    const catalystCard = root.querySelector('.rawgrim-catalyst-roll-card');
+    if (catalystCard) {
+        const actorId = catalystCard.getAttribute('data-actor-id');
+        const trigger = decodeURIComponent(catalystCard.getAttribute('data-trigger') || "1st-level%20spell%20or%20higher");
+        const actor = game.actors.get(actorId);
+        if (!actor) return;
+
+        const canRoll = game.user.isGM || actor.testUserPermission(game.user, "OWNER");
+        if (!canRoll) {
+            catalystCard.querySelector('.rg-catalyst-roll-btn')?.remove();
+            return;
+        }
+
+        catalystCard.querySelector('.rg-catalyst-roll-btn')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const button = e.currentTarget;
+            button.disabled = true;
+            await globalThis.RawgrimSurvival.eksekusiUjiDaduKatalis(actor, trigger, {
+                rollerName: game.user?.name,
+                rollMode: game.user.isGM ? "GM confirmed roll" : "Character use"
+            });
+            button.remove();
+        });
+        return;
+    }
+
+    const durabilityCard = root.querySelector('.rawgrim-durability-roll-card');
+    if (durabilityCard) {
+        const actorId = durabilityCard.getAttribute('data-actor-id');
+        const itemId = durabilityCard.getAttribute('data-item-id');
+        const reason = decodeURIComponent(durabilityCard.getAttribute('data-reason') || "GM%20request");
+        const actor = game.actors.get(actorId);
+        const item = actor?.items?.get(itemId);
+        if (!actor || !item) return;
+
+        const canRoll = game.user.isGM || actor.testUserPermission(game.user, "OWNER");
+        if (!canRoll) {
+            durabilityCard.querySelector('.rg-durability-roll-btn')?.remove();
+            return;
+        }
+
+        durabilityCard.querySelector('.rg-durability-roll-btn')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const button = e.currentTarget;
+            button.disabled = true;
+            await globalThis.RawgrimSurvival.rollItemDurability(actor, item, reason, {
+                rollerName: game.user?.name,
+                rollMode: game.user.isGM ? "GM confirmed roll" : "Character use"
+            });
+            button.remove();
+        });
+        return;
+    }
+
+    const injuryCard = root.querySelector('.rawgrim-injury-roll-card');
+    if (injuryCard) {
+        const actorId = injuryCard.getAttribute('data-actor-id');
+        const reason = decodeURIComponent(injuryCard.getAttribute('data-reason') || "GM%20confirmed%20injury%20trigger");
+        const actor = game.actors.get(actorId);
+        if (!actor) return;
+
+        const canRoll = game.user.isGM || actor.testUserPermission(game.user, "OWNER");
+        if (!canRoll) {
+            injuryCard.querySelector('.rg-injury-roll-btn')?.remove();
+            return;
+        }
+
+        injuryCard.querySelector('.rg-injury-roll-btn')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const button = e.currentTarget;
+            button.disabled = true;
+            await globalThis.RawgrimSurvival.rollLingeringInjury(actor, reason, {
+                rollerName: game.user?.name,
+                rollMode: game.user.isGM ? "GM confirmed roll" : "Character use"
+            });
+            button.remove();
+        });
+        return;
+    }
+
+    const cantripCard = root.querySelector('.rawgrim-cantrip-roll-card');
+    if (cantripCard) {
+        const actorId = cantripCard.getAttribute('data-actor-id');
+        const actor = game.actors.get(actorId);
+        if (!actor) return;
+
+        const canRoll = game.user.isGM || actor.testUserPermission(game.user, "OWNER");
+        if (!canRoll) {
+            cantripCard.querySelector('.rg-cantrip-roll-btn')?.remove();
+            return;
+        }
+
+        cantripCard.querySelector('.rg-cantrip-roll-btn')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const button = e.currentTarget;
+            button.disabled = true;
+            const roll = await new Roll("1d6").evaluate();
+            await globalThis.RawgrimSurvival.showDiceSoNiceRoll(roll);
+            const currentRP = actor.getFlag('rawgrim-toll-of-survival', 'resonancePoints') || 0;
+            const gainsRP = roll.total === 1;
+            const newRP = gainsRP ? currentRP + 1 : currentRP;
+            if (gainsRP) await actor.setFlag('rawgrim-toll-of-survival', 'resonancePoints', newRP);
+            await actor.setFlag('rawgrim-toll-of-survival', 'cantripCounter', 0);
+            if (gainsRP) await globalThis.RawgrimSurvival.checkAndPromptOverload(actor, newRP);
+
+            await ChatMessage.create({
+                content: `
+                    <div class="rawgrim-sys-card" style="border-top-color: ${gainsRP ? '#541e1e' : '#1b4224'} !important;">
+                        <h4 class="rawgrim-card-title">Minor Magic Strain</h4>
+                        <p class="rawgrim-card-sub"><strong>${actor.name}</strong> rolls ${roll.total} on the strain check.</p>
+                        <p class="rawgrim-card-note">Public result.</p>
+                        <table class="rawgrim-table-compact">
+                            <thead><tr><th>Result</th><th>RP</th></tr></thead>
+                            <tbody><tr><td>${gainsRP ? '+1 RP' : 'No RP'}</td><td>${newRP}</td></tr></tbody>
+                        </table>
+                    </div>
+                `,
+                speaker: { alias: 'Laws of Rawgrim' }
+            });
+
+            cantripCard.querySelector('.rg-cantrip-roll-btn')?.remove();
+            globalThis.RawgrimSurvival.refreshOpenGMDashboards?.();
+        });
+        return;
+    }
 
     const card = root.querySelector('.rawgrim-backlash-prompt-card');
     if (!card) return;
@@ -171,44 +355,87 @@ Hooks.on('renderChatMessage', (message, html, data) => {
     const actor = game.actors.get(actorId);
     if (!actor) return;
 
+    const stopIfAlreadyStable = async () => {
+        const activeTotalRP = actor.getFlag('rawgrim-toll-of-survival', 'resonancePoints') || 0;
+        const activeThreshold = globalThis.RawgrimSurvival.getResonanceThreshold(actor) || threshold;
+        if (activeTotalRP >= activeThreshold) return false;
+
+        await globalThis.RawgrimSurvival.clearPendingOverload(actor);
+        ui.notifications.info(`${actor.name}: overload is already stable.`);
+        card.querySelector('.gm-only-controls')?.remove();
+        globalThis.RawgrimSurvival.refreshOpenGMDashboards?.();
+        return true;
+    };
+
     card.querySelector('.rg-vtt-roll-btn')?.addEventListener('click', async (e) => {
         e.preventDefault();
+        if (await stopIfAlreadyStable()) return;
+        const controls = card.querySelector('.gm-only-controls');
+        controls?.querySelectorAll('button').forEach(button => { button.disabled = true; });
+        const activeTotalRP = actor.getFlag('rawgrim-toll-of-survival', 'resonancePoints') || totalRP;
+        const activeThreshold = globalThis.RawgrimSurvival.getResonanceThreshold(actor) || threshold;
         const roll = await new Roll("1d20").evaluate();
-        const isBacklash = roll.total < totalRP;
-        
-        let resolusiText = isBacklash 
-            ? `<span style="color: #bf3f3f; font-weight: bold;">CRITICAL BREAKDOWN</span><br/>The caster loses control. Consult the secret Breakdown Table.`
-            : `<span style="color: #3fbf3f; font-weight: bold;">STABILIZED</span><br/>The containment holds. Corruption restrained.`;
+        await globalThis.RawgrimSurvival.showDiceSoNiceRoll(roll);
+        const isBacklash = roll.total < activeTotalRP;
+        const newRP = isBacklash
+            ? globalThis.RawgrimSurvival.getReleasedResonance(activeTotalRP, activeThreshold)
+            : globalThis.RawgrimSurvival.getContainedResonance(activeTotalRP, activeThreshold);
 
-        await ChatMessage.create({
-            content: `<div class="rawgrim-sys-card" style="border-top-color: ${isBacklash ? '#541e1e' : '#1b4224'} !important;"><p class="rawgrim-card-sub" style="margin:0; text-align:center;">Result: <strong>${roll.total}</strong> (vs Target ${totalRP})</p><hr style="border-top:1px solid #1c1815; margin:4px 0;"/><p class="rawgrim-card-sub" style="margin:0; text-align:center;">${resolusiText}</p></div>`,
-            speaker: { alias: 'Laws of Rawgrim' }
+        await actor.setFlag('rawgrim-toll-of-survival', 'resonancePoints', newRP);
+        await globalThis.RawgrimSurvival.clearPendingOverload(actor);
+        await globalThis.RawgrimSurvival.createResonanceResolutionMessage(actor, isBacklash ? "Backlash Failure" : "Overload Contained", {
+            before: activeTotalRP,
+            after: newRP,
+            borderColor: isBacklash ? '#541e1e' : '#1b4224',
+            message: isBacklash ? "fails to control the overload. The excess resonance is released as backlash." : "contains the overload. Their Resonance Points fall below the limit.",
+            note: `Control check: ${roll.total} vs ${activeTotalRP}.`
         });
 
-        const sisaRP = isBacklash ? Math.max(0, totalRP - threshold) : totalRP;
-        await actor.setFlag('rawgrim-toll-of-survival', 'resonancePoints', sisaRP);
         if (isBacklash) await globalThis.RawgrimSurvival.prosesKegagalanBacklashAktor(actor);
         card.querySelector('.gm-only-controls')?.remove();
+        globalThis.RawgrimSurvival.refreshOpenGMDashboards?.();
     });
 
     card.querySelector('.rg-manual-fail-btn')?.addEventListener('click', async (e) => {
         e.preventDefault();
-        await ChatMessage.create({
-            content: `<div class="rawgrim-sys-card" style="border-top-color:#541e1e !important;"><p class="rawgrim-card-sub" style="margin:0; color:#bf3f3f; text-align:center;"><strong>Manual Resolution:</strong> ${actor.name} fails by DM decree. Open the Breakdown Ledger.</p></div>`,
-            speaker: { alias: 'Laws of Rawgrim' }
+        if (await stopIfAlreadyStable()) return;
+        const controls = card.querySelector('.gm-only-controls');
+        controls?.querySelectorAll('button').forEach(button => { button.disabled = true; });
+        const activeTotalRP = actor.getFlag('rawgrim-toll-of-survival', 'resonancePoints') || totalRP;
+        const activeThreshold = globalThis.RawgrimSurvival.getResonanceThreshold(actor) || threshold;
+        const newRP = globalThis.RawgrimSurvival.getReleasedResonance(activeTotalRP, activeThreshold);
+        await actor.setFlag('rawgrim-toll-of-survival', 'resonancePoints', newRP);
+        await globalThis.RawgrimSurvival.clearPendingOverload(actor);
+        await globalThis.RawgrimSurvival.createResonanceResolutionMessage(actor, "Backlash Failure", {
+            before: activeTotalRP,
+            after: newRP,
+            borderColor: '#541e1e',
+            message: "fails to control the overload. The excess resonance is released as backlash.",
+            note: "Resolved by the GM."
         });
-        const sisaRP = Math.max(0, totalRP - threshold);
-        await actor.setFlag('rawgrim-toll-of-survival', 'resonancePoints', sisaRP);
         await globalThis.RawgrimSurvival.prosesKegagalanBacklashAktor(actor);
         card.querySelector('.gm-only-controls')?.remove();
+        globalThis.RawgrimSurvival.refreshOpenGMDashboards?.();
     });
 
     card.querySelector('.rg-manual-pass-btn')?.addEventListener('click', async (e) => {
         e.preventDefault();
-        await ChatMessage.create({
-            content: `<div class="rawgrim-sys-card" style="border-top-color:#1b4224 !important;"><p class="rawgrim-card-sub" style="margin:0; color:#3fbf3f; text-align:center;"><strong>Manual Resolution:</strong> ${actor.name} endures the overload by DM decree.</p></div>`,
-            speaker: { alias: 'Laws of Rawgrim' }
+        if (await stopIfAlreadyStable()) return;
+        const controls = card.querySelector('.gm-only-controls');
+        controls?.querySelectorAll('button').forEach(button => { button.disabled = true; });
+        const activeTotalRP = actor.getFlag('rawgrim-toll-of-survival', 'resonancePoints') || totalRP;
+        const activeThreshold = globalThis.RawgrimSurvival.getResonanceThreshold(actor) || threshold;
+        const newRP = globalThis.RawgrimSurvival.getContainedResonance(activeTotalRP, activeThreshold);
+        await actor.setFlag('rawgrim-toll-of-survival', 'resonancePoints', newRP);
+        await globalThis.RawgrimSurvival.clearPendingOverload(actor);
+        await globalThis.RawgrimSurvival.createResonanceResolutionMessage(actor, "Overload Contained", {
+            before: activeTotalRP,
+            after: newRP,
+            borderColor: '#1b4224',
+            message: "contains the overload. Their Resonance Points fall below the limit.",
+            note: "Resolved by the GM."
         });
         card.querySelector('.gm-only-controls')?.remove();
+        globalThis.RawgrimSurvival.refreshOpenGMDashboards?.();
     });
 });

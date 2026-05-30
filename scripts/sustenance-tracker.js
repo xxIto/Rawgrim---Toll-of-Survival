@@ -114,6 +114,7 @@ Hooks.on("dnd5e.preLongRest", (actor, config) => {
 globalThis.RawgrimSurvival.bukaDialogSustenanceLedger = function(actor, restType) {
     if (!actor) return;
 
+    const actorName = globalThis.RawgrimSurvival.escapeHTML?.(actor.name) || actor.name;
     let physicalFoodCount = 0;
     let physicalWaterCount = 0;
     const currentGold = actor.system.currency?.gp || 0;
@@ -147,16 +148,71 @@ globalThis.RawgrimSurvival.bukaDialogSustenanceLedger = function(actor, restType
     });
 
     const isLongRest = restType === "long";
+    const restVariant = game.settings.get('rawgrim-toll-of-survival', 'restVariant') || "gritty";
+    const isGrittyRest = restVariant === "gritty";
     const baseRationPrice = game.settings.get('rawgrim-toll-of-survival', 'rationGoldCost') || 0.5;
     const baseWaterPrice = game.settings.get('rawgrim-toll-of-survival', 'waterGoldCost') || 0.2;
 
-    const requiredAmount = isLongRest ? 7 : 1;
-    const minimumThreshold = 3; 
+    const requiredAmount = isLongRest ? (isGrittyRest ? 7 : 1) : 1;
+    const restDurationLabel = isLongRest
+        ? (isGrittyRest ? "7-day downtime vigil" : "1-day long rest")
+        : "8-hour short rest";
+    const longRestTitle = isGrittyRest ? "The Long Rest Sustenance Ledger" : "The Long Rest Ledger";
+    const resourceLabel = `${requiredAmount} Ration${requiredAmount === 1 ? "" : "s"} and ${requiredAmount} Water${requiredAmount === 1 ? "" : "s"}`;
+
+    function getLongRestSustenanceState(portions) {
+        if (!isGrittyRest) {
+            return portions >= requiredAmount
+                ? {
+                    className: "rg-status-full",
+                    label: "Supplied",
+                    message: "Enough food and water are set aside for the rest.",
+                    penaltyLevel: 0
+                }
+                : {
+                    className: "rg-status-zero",
+                    label: "Short on supplies",
+                    message: "The rest lacks food or water. Gain +1 exhaustion.",
+                    penaltyLevel: 1
+                };
+        }
+
+        if (portions >= 7) {
+            return {
+                className: "rg-status-full",
+                label: "Fully supplied",
+                message: "Food and water cover the full 7-day rest. No exhaustion penalty.",
+                penaltyLevel: 0
+            };
+        }
+        if (portions >= 5) {
+            return {
+                className: "rg-status-warning",
+                label: "5-6 days supplied",
+                message: "The rest is rough. Exhaustion becomes level 1.",
+                penaltyLevel: 1
+            };
+        }
+        if (portions >= 3) {
+            return {
+                className: "rg-status-danger",
+                label: "3-4 days supplied",
+                message: "The rest is harsh. Exhaustion becomes level 2.",
+                penaltyLevel: 2
+            };
+        }
+        return {
+            className: "rg-status-zero",
+            label: "0-2 days supplied",
+            message: "The body is pushed too far. Exhaustion becomes level 3.",
+            penaltyLevel: 3
+        };
+    }
 
     const htmlContent = `
         <div class="rawgrim-sustenance-dialog" style="font-family: 'Times New Roman', serif; color: #a8998a; background: #0d0c0b; padding: 5px;">
             <p style="margin-bottom: 12px; color: #63594f; font-size: 0.9em; text-align: center; font-style: italic;">
-                Sustenance Ledger: <strong>${actor.name}</strong> (Available Gold: ${currentGold} GP)
+                Sustenance Ledger: <strong>${actorName}</strong> (Gold: ${currentGold} GP)
             </p>
             
             <div class="rawgrim-sustenance-row">
@@ -180,12 +236,12 @@ globalThis.RawgrimSurvival.bukaDialogSustenanceLedger = function(actor, restType
             ${isLongRest ? `
             <div class="rawgrim-lifestyle-box">
                 <span class="rawgrim-sustenance-label"><i class="fas fa-coins"></i> Downtime Lifestyle Funding</span>
-                <p style="font-size: 0.82em; color: #63594f; margin: 4px 0 6px 0; line-height: 1.2;">Funding via coin accounts for market price variants (Cheap vs Luxury meals over 7 days).</p>
+                <p style="font-size: 0.82em; color: #63594f; margin: 4px 0 6px 0; line-height: 1.2;">Pay coin instead of spending items. Required supplies: ${resourceLabel}.</p>
                 <select id="rg-lifestyle-select" class="rawgrim-btn-flat" style="width: 100%; text-align: left; background: #090807;">
                     <option value="none">Use Physical Items Only</option>
-                    <option value="cheap">Cheap Narrative (0.5x Cost - Simple Broth/Sewage)</option>
-                    <option value="standard">Standard Lifestyle (1.0x Cost - Clean Inn Meals)</option>
-                    <option value="luxury">Luxury Narrative (2.0x Cost - High Faction Banquet)</option>
+                    <option value="cheap">Modest Purchase (0.5x Cost)</option>
+                    <option value="standard">Standard Purchase (1.0x Cost)</option>
+                    <option value="luxury">Comfortable Purchase (2.0x Cost)</option>
                 </select>
                 <div class="rawgrim-gold-display" id="rg-gold-tax-display">Additional Fee: 0 GP</div>
             </div>
@@ -193,18 +249,18 @@ globalThis.RawgrimSurvival.bukaDialogSustenanceLedger = function(actor, restType
 
             <div class="rawgrim-sustenance-warning" id="rg-sustenance-alert" style="border: 1px solid #421b1b; background: #1c0d0d; padding: 10px; margin-top: 12px; display: block;">
                 <div class="rawgrim-sustenance-warning-text" id="rg-alert-text" style="font-size: 0.88em; color: #c29999; line-height: 1.4; font-style: italic;">
-                    Scanning biological parameters...
+                    Choose the supplies spent for this rest.
                 </div>
             </div>
         </div>
     `;
 
     const dialogWindow = new Dialog({
-        title: isLongRest ? "The Long Rest Sustenance Ledger" : "The Short Rest Sustenance Ledger",
+        title: isLongRest ? longRestTitle : "The Short Rest Sustenance Ledger",
         content: htmlContent,
         buttons: {
             confirm: {
-                label: "Confirm Repose Decree",
+                label: "Confirm Rest",
                 callback: async (html) => {
                     const root = html instanceof HTMLElement ? html : html[0];
                     let chosenFood = parseInt(root.querySelector('#rg-food-val').textContent) || 0;
@@ -220,7 +276,7 @@ globalThis.RawgrimSurvival.bukaDialogSustenanceLedger = function(actor, restType
                             useGoldFunding = true;
                             if (lifestyle === "cheap") lifestyleMultiplier = 0.5;
                             if (lifestyle === "luxury") lifestyleMultiplier = 2.0;
-                            goldTax = Number((((baseRationPrice * 7) + (baseWaterPrice * 7)) * lifestyleMultiplier).toFixed(2));
+                            goldTax = Number((((baseRationPrice * requiredAmount) + (baseWaterPrice * requiredAmount)) * lifestyleMultiplier).toFixed(2));
                         }
                     }
 
@@ -231,8 +287,8 @@ globalThis.RawgrimSurvival.bukaDialogSustenanceLedger = function(actor, restType
 
                     if (useGoldFunding) {
                         await actor.update({ "system.currency.gp": Number((currentGold - goldTax).toFixed(2)) });
-                        chosenFood = 7;
-                        chosenWater = 7;
+                        chosenFood = requiredAmount;
+                        chosenWater = requiredAmount;
                     } else {
                         await eksekusiKonsumsiLogistikTerpadu(actor, chosenFood, chosenWater);
                     }
@@ -246,18 +302,22 @@ globalThis.RawgrimSurvival.bukaDialogSustenanceLedger = function(actor, restType
 
                             let chatContent = `
                                 <div class="rawgrim-sys-card starvation">
-                                    <h4 class="rawgrim-card-title">Short Rest Collapse</h4>
-                                    <p class="rawgrim-card-sub"><strong>${actor.name}</strong> collapsed during an 8-hour short rest due to absolute dehydration and hunger.</p>
-                                    <p class="rawgrim-card-sub" style="text-align: center; color: #bf3f3f; margin: 0;"><strong>Penalty: +1 Exhaustion Level (Current: Level ${newExhaustion})</strong></p>
+                                    <h4 class="rawgrim-card-title">Short Rest Interrupted</h4>
+                                    <p class="rawgrim-card-sub"><strong>${actorName}</strong> lacks the food or water needed to rest safely.</p>
+                                    <table class="rawgrim-table-compact">
+                                        <thead><tr><th>Supplies Used</th><th>Result</th></tr></thead>
+                                        <tbody><tr><td>Food ${chosenFood}/1<br/>Water ${chosenWater}/1</td><td class="rg-status-zero">Exhaustion ${newExhaustion}</td></tr></tbody>
+                                    </table>
+                                    <p class="rawgrim-card-note">Short rest penalty: +1 exhaustion.</p>
                                 </div>
                             `;
                             await ChatMessage.create({ content: chatContent, speaker: { alias: 'Laws of Rawgrim' } });
                             ui.notifications.warn(`${actor.name} suffers exhaustion.`);
                         } else {
                             let chatContent = `
-                                <div class="rawgrim-sys-card" style="border-top-color: #2a3d4a !important;">
-                                    <h4 class="rawgrim-card-title">Short Rest Sustained</h4>
-                                    <p class="rawgrim-card-sub"><strong>${actor.name}</strong> consumed 1 Ration and 1 Water. Biological parameters stabilized over 8 hours.</p>
+                                <div class="rawgrim-sys-card rest-short">
+                                    <h4 class="rawgrim-card-title">Short Rest Complete</h4>
+                                    <p class="rawgrim-card-sub"><strong>${actorName}</strong> spends 1 ration and 1 water, then gains the benefits of a short rest.</p>
                                 </div>
                             `;
                             await ChatMessage.create({ content: chatContent, speaker: { alias: 'Laws of Rawgrim' } });
@@ -266,38 +326,38 @@ globalThis.RawgrimSurvival.bukaDialogSustenanceLedger = function(actor, restType
 
                     if (isLongRest) {
                         const minPorsi = Math.min(chosenFood, chosenWater);
-                        let finalPenaltyLevel = 0;
-
-                        if (minPorsi >= 7) {
-                            finalPenaltyLevel = 0;
-                        } else if (minPorsi >= minimumThreshold) {
-                            finalPenaltyLevel = 2;
-                        } else {
-                            finalPenaltyLevel = 3;
-                        }
+                        const sustenanceState = getLongRestSustenanceState(minPorsi);
+                        const finalPenaltyLevel = sustenanceState.penaltyLevel;
 
                         if (finalPenaltyLevel > 0) {
-                            await actor.update({ "system.attributes.exhaustion": finalPenaltyLevel });
+                            const currentExhaustion = actor.system.attributes?.exhaustion ?? 0;
+                            const newExhaustion = isGrittyRest
+                                ? Math.max(currentExhaustion, finalPenaltyLevel)
+                                : Math.min(6, currentExhaustion + 1);
+
+                            await actor.update({ "system.attributes.exhaustion": newExhaustion });
 
                             let chatContent = `
                                 <div class="rawgrim-sys-card starvation">
-                                    <h4 class="rawgrim-card-title">Long Rest Vigil Penalty</h4>
-                                    <p class="rawgrim-card-sub"><strong>${actor.name}</strong> completed a 7-day downtime rest with flawed resources. Rejuvenation disrupted.</p>
+                                    <h4 class="rawgrim-card-title">Long Rest Interrupted</h4>
+                                    <p class="rawgrim-card-sub"><strong>${actorName}</strong> lacks the food or water needed to rest safely.</p>
                                     <table class="rawgrim-table-compact">
-                                        <thead><tr><th>Consumed Log</th><th>Exhaustion Status</th></tr></thead>
-                                        <tbody><tr><td>Food: ${chosenFood}/7 | Water: ${chosenWater}/7</td><td style="color: #bf3f3f;">Forced to Level ${finalPenaltyLevel}</td></tr></tbody>
+                                        <thead><tr><th>Supplies Used</th><th>Result</th></tr></thead>
+                                        <tbody><tr><td>Food ${chosenFood}/${requiredAmount}<br/>Water ${chosenWater}/${requiredAmount}</td><td class="${sustenanceState.className}">Exhaustion ${newExhaustion}</td></tr></tbody>
                                     </table>
+                                    <p class="rawgrim-card-note">${sustenanceState.message}</p>
                                 </div>
                             `;
                             await ChatMessage.create({ content: chatContent, speaker: { alias: 'Laws of Rawgrim' } });
-                            ui.notifications.error(`${actor.name}'s body decays to Exhaustion Level ${finalPenaltyLevel}.`);
+                            ui.notifications.error(`${actor.name}'s body decays to Exhaustion Level ${newExhaustion}.`);
                             return; 
                         } else {
-                            let lifestyleText = useGoldFunding ? `Funded via Gold (${goldTax} GP)` : "Funded via Physical Rations";
+                            let lifestyleText = useGoldFunding ? `Paid ${goldTax} GP for food and water.` : "Food and water were taken from inventory.";
                             let chatContent = `
                                 <div class="rawgrim-sys-card rest-long">
-                                    <h4 class="rawgrim-card-title">Long Rest Vigil Completed</h4>
-                                    <p class="rawgrim-card-sub"><strong>${actor.name}</strong> successfully survived the 7-day downtime vigil. Vessel fully rejuvenated. [${lifestyleText}].</p>
+                                    <h4 class="rawgrim-card-title">Long Rest Complete</h4>
+                                    <p class="rawgrim-card-sub"><strong>${actorName}</strong> completes the ${restDurationLabel} and gains the benefits of a long rest.</p>
+                                    <p class="rawgrim-card-note">${lifestyleText}</p>
                                 </div>
                             `;
                             await ChatMessage.create({ content: chatContent, speaker: { alias: 'Laws of Rawgrim' } });
@@ -347,25 +407,20 @@ globalThis.RawgrimSurvival.bukaDialogSustenanceLedger = function(actor, restType
             if (isLongRest && lifestyleSelect && lifestyleSelect.value !== "none") {
                 const type = lifestyleSelect.value;
                 let mult = type === "cheap" ? 0.5 : (type === "luxury" ? 2.0 : 1.0);
-                let totalCost = (((baseRationPrice * 7) + (baseWaterPrice * 7)) * mult).toFixed(2);
-                goldTaxDisplay.textContent = `Additional Fee: ${totalCost} GP`;
-                alertText.innerHTML = `<span style="color:#3b8c4c;"><i class="fas fa-check-circle"></i> <strong>Gold Funding Active:</strong> Character will purchase food dynamically during the 7 days. Rejuvenation safe.</span>`;
+                let totalCost = (((baseRationPrice * requiredAmount) + (baseWaterPrice * requiredAmount)) * mult).toFixed(2);
+                goldTaxDisplay.textContent = `Cost: ${totalCost} GP`;
+                alertText.innerHTML = `<span class="rg-status-full"><i class="fas fa-check-circle"></i> Paid supplies cover this ${restDurationLabel}. No sustenance penalty.</span>`;
                 return;
             }
 
             if (isLongRest) {
-                if (minPorsi >= 7) {
-                    alertText.innerHTML = `<span class="rg-status-full"><i class="fas fa-heart"></i> <strong>Sustenance Satiated:</strong> Full effect reached. The vessel will safely cross the 7-day downtime without physical decay.</span>`;
-                } else if (minPorsi >= minimumThreshold) {
-                    alertText.innerHTML = `<span class="rg-status-min"><i class="fas fa-exclamation-circle"></i> <strong>Isi Minimum Active:</strong> You are conserving supplies. Upon rest confirmation, your flesh will contract **Exhaustion Level 2**.</span>`;
-                } else {
-                    alertText.innerHTML = `<span class="rg-status-zero"><i class="fas fa-skull"></i> <strong>Severe Deprivation:</strong> Insufficient porsi. Comitting this 7-day rest will disrupt all recovery and plunge your body into **Exhaustion Level 3**.</span>`;
-                }
+                const state = getLongRestSustenanceState(minPorsi);
+                alertText.innerHTML = `<span class="${state.className}"><i class="fas fa-info-circle"></i> <strong>${state.label}:</strong> ${state.message}</span>`;
             } else {
                 if (selectedFood >= 1 && selectedWater >= 1) {
                     alertText.innerHTML = `<span class="rg-status-full"><i class="fas fa-check"></i> Short rest sustenance secured for the 8-hour block.</span>`;
                 } else {
-                    alertText.innerHTML = `<span class="rg-status-zero"><i class="fas fa-exclamation-triangle"></i> <strong>No Sustenance:</strong> Resting for 8 hours without water/food will inflict **+1 Exhaustion Level**.</span>`;
+                    alertText.innerHTML = `<span class="rg-status-zero"><i class="fas fa-exclamation-triangle"></i> A short rest needs 1 ration and 1 water. Missing either one gives +1 exhaustion.</span>`;
                 }
             }
         }
@@ -374,7 +429,7 @@ globalThis.RawgrimSurvival.bukaDialogSustenanceLedger = function(actor, restType
 
         document.getElementById('rg-food-plus')?.addEventListener('click', (e) => {
             e.preventDefault();
-            if (selectedFood < physicalFoodCount) {
+            if (selectedFood < Math.min(physicalFoodCount, requiredAmount)) {
                 selectedFood++;
                 foodVal.textContent = selectedFood;
                 kalkulasiAturanVisual();
@@ -392,7 +447,7 @@ globalThis.RawgrimSurvival.bukaDialogSustenanceLedger = function(actor, restType
 
         document.getElementById('rg-water-plus')?.addEventListener('click', (e) => {
             e.preventDefault();
-            if (selectedWater < physicalWaterCount) {
+            if (selectedWater < Math.min(physicalWaterCount, requiredAmount)) {
                 selectedWater++;
                 waterVal.textContent = selectedWater;
                 kalkulasiAturanVisual();

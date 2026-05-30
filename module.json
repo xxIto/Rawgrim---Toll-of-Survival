@@ -26,6 +26,7 @@
         "scripts/resonance-engine.js",
         "scripts/rest-decay.js",
         "scripts/hud-management.js",
+        "scripts/gm-dashboard.js",
         "scripts/sustenance-tracker.js"
     ],
     "styles": [

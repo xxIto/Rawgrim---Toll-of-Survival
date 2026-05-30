@@ -27,12 +27,13 @@ Hooks.on('renderTokenHUD', (hud, html, data) => {
         
         const isDependent = actor.getFlag('rawgrim-toll-of-survival', 'isCatalystDependent') || false;
         const currentRP = actor.getFlag('rawgrim-toll-of-survival', 'resonancePoints') || 0;
-        const totalMarks = actor.getFlag('rawgrim-toll-of-survival', 'backlashFailures') || 0;
+        const marksState = globalThis.RawgrimSurvival.getActorMarksState(actor);
         const threshold = globalThis.RawgrimSurvival.getResonanceThreshold(actor);
-        const activeStageName = globalThis.RawgrimSurvival.getBacklashStageName(totalMarks);
+        const activeStageName = marksState.stageName;
+        const marksLimit = marksState.stageLimit ? ` / ${marksState.stageLimit}` : "";
         
-        const catalystItem = actor.items.find(i => i?.name?.toLowerCase()?.includes('material catalyst'));
-        let currentDieDisplay = catalystItem ? (catalystItem.getFlag('rawgrim-toll-of-survival', 'usageDie') || 'd8') : 'None';
+        const currentDie = globalThis.RawgrimSurvival.getCatalystUsageDie(actor);
+        const currentDieDisplay = currentDie || 'No Active Catalyst';
 
         const damagedProsthetics = actor.items.filter(i => i?.getFlag('rawgrim-toll-of-survival', 'isOverloaded') === true);
 
@@ -58,7 +59,8 @@ Hooks.on('renderTokenHUD', (hud, html, data) => {
                         <span style="font-weight: bold; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px;"><i class="fas fa-fingerprint"></i> The Marks</span>
                         <span style="font-weight: bold; color: #bf3f3f; background: #171412; padding: 1px 5px; font-size: 0.8em;">${activeStageName}</span>
                     </div>
-                    <input type="number" id="rg-dialog-marks" value="${totalMarks}" min="0" max="100" style="width: 100%; background: #090807; color: #a8998a; border: 1px solid #2d261f; padding: 4px; border-radius: 0px; text-align: center; font-family: 'Times New Roman', serif;"/>
+                    <input type="number" id="rg-dialog-marks" value="${marksState.stageCount}" min="0" max="100" style="width: 100%; background: #090807; color: #a8998a; border: 1px solid #2d261f; padding: 4px; border-radius: 0px; text-align: center; font-family: 'Times New Roman', serif;"/>
+                    <p style="margin: 5px 0 0 0; font-size: 0.78em; color: #63594f; text-align: center;">Current stage count${marksLimit}</p>
                 </div>
 
                 <div style="background: #060505; border: 1px solid #1c1815; padding: 8px; margin-bottom: 10px;">
@@ -70,7 +72,7 @@ Hooks.on('renderTokenHUD', (hud, html, data) => {
                 
                 <div style="background: #060505; border: 1px solid #1c1815; padding: 8px;">
                     <span style="font-weight: bold; font-size: 0.85em; text-transform: uppercase; display: block; margin-bottom: 6px; letter-spacing: 1px;"><i class="fas fa-hourglass-half"></i> Injunction</span>
-                    <button type="button" id="rg-btn-force-roll" class="rawgrim-btn-flat" style="width: 100%;">Force Usage Roll (1${currentDieDisplay})</button>
+                    <button type="button" id="rg-btn-force-roll" class="rawgrim-btn-flat" style="width: 100%;" ${currentDie ? '' : 'disabled'}>Force Usage Roll (${currentDieDisplay})</button>
                 </div>
             </div>
         `;
@@ -89,7 +91,7 @@ Hooks.on('renderTokenHUD', (hud, html, data) => {
 
                         await actor.setFlag('rawgrim-toll-of-survival', 'isCatalystDependent', updatedDependent);
                         await actor.setFlag('rawgrim-toll-of-survival', 'resonancePoints', updatedRP);
-                        await actor.setFlag('rawgrim-toll-of-survival', 'backlashFailures', updatedMarks);
+                        await globalThis.RawgrimSurvival.setActorMarksState(actor, marksState.stageKey, updatedMarks);
                         ui.notifications.info(`Regulatory parameters updated.`);
                     }
                 }
@@ -101,7 +103,10 @@ Hooks.on('renderTokenHUD', (hud, html, data) => {
         setTimeout(() => {
             document.querySelector(`#rg-btn-force-roll`)?.addEventListener('click', async (e) => {
                 e.preventDefault();
-                await globalThis.RawgrimSurvival.eksekusiUjiDaduKatalis(actor, "Narrative Enforcement (Cantrip/Distance)");
+                await globalThis.RawgrimSurvival.eksekusiUjiDaduKatalis(actor, "Narrative Enforcement (Cantrip/Distance)", {
+                    rollerName: game.user?.name,
+                    rollMode: "GM forced roll"
+                });
                 dialogWindow.close();
             });
 
@@ -117,9 +122,11 @@ Hooks.on('renderTokenHUD', (hud, html, data) => {
                     await item.update({
                         name: cleanedName,
                         "system.equipped": originallyEquipped,
-                        "system.attunement": originalAttunement,
-                        "flags.rawgrim-toll-of-survival.isOverloaded": false
+                        "system.attunement": originalAttunement
                     });
+                    await item.unsetFlag('rawgrim-toll-of-survival', 'isOverloaded');
+                    await item.unsetFlag('rawgrim-toll-of-survival', 'wasEquipped');
+                    await item.unsetFlag('rawgrim-toll-of-survival', 'originalAttunement');
 
                     if (item.effects && item.effects.size > 0) {
                         for (let effect of item.effects) {
@@ -131,6 +138,11 @@ Hooks.on('renderTokenHUD', (hud, html, data) => {
                 await actor.prepareData();
                 if (actor.sheet?.rendered) actor.sheet.render(false);
 
+                globalThis.RawgrimSurvival.tampilkanCinematicNotice?.(
+                    "Mechanism Recalibrated",
+                    `${actor.name}'s overloaded mechanisms are restored.`,
+                    "fas fa-wrench"
+                );
                 ui.notifications.info(`Mechanisms recalibrated. Functions restored.`);
                 dialogWindow.close();
             });
