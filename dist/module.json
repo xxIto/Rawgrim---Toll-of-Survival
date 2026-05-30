@@ -1,0 +1,49 @@
+{
+    "id": "rawgrim-toll-of-survival",
+    "title": "Rawgrim: The Toll of Survival",
+    "description": "Sistem survival mekanis tersembunyi untuk dunia Rawgrim.",
+    "version": "1.0.0",
+    "url": "https://github.com/xxlto/Rawgrim---Toll-of-Survival",
+    "manifest": "https://github.com/xxlto/Rawgrim---Toll-of-Survival/releases/latest/download/module.json",
+    "download": "https://github.com/xxlto/Rawgrim---Toll-of-Survival/releases/download/v1.0.0/rawgrim-toll-of-survival.zip",
+    "readme": "https://github.com/xxlto/Rawgrim---Toll-of-Survival#readme",
+    "bugs": "https://github.com/xxlto/Rawgrim---Toll-of-Survival/issues",
+    "compatibility": {
+        "minimum": "14",
+        "verified": "14.361"
+    },
+    "authors": [
+        {
+            "name": "Remnant Architect"
+        }
+    ],
+    "relationships": {
+        "systems": [
+            {
+                "id": "dnd5e",
+                "type": "system"
+            }
+        ],
+        "requires": [
+            {
+                "id": "lib-wrapper",
+                "type": "module",
+                "compatibility": {
+                    "minimum": "1.12.0"
+                }
+            }
+        ]
+    },
+    "esmodules": [
+        "scripts/core-helpers.js",
+        "scripts/catalyst-gatekeeper.js",
+        "scripts/resonance-engine.js",
+        "scripts/rest-decay.js",
+        "scripts/hud-management.js",
+        "scripts/gm-dashboard.js",
+        "scripts/sustenance-tracker.js"
+    ],
+    "styles": [
+        "styles/rawgrim.css"
+    ]
+}
