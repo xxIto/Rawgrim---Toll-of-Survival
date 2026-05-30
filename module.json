@@ -4,8 +4,8 @@
     "description": "Sistem survival mekanis tersembunyi untuk dunia Rawgrim.",
     "version": "1.0.0",
     "url": "https://github.com/xxIto/Rawgrim---Toll-of-Survival.git",
-    "manifest": "https://github.com/xxIto/Rawgrim---Toll-of-Survival/releases/download/v1/module.json",
-    "download": "https://github.com/xxIto/Rawgrim---Toll-of-Survival/releases/download/v1/rawgrim-toll-of-survival.zip",
+    "manifest": "https://github.com/xxIto/Rawgrim---Toll-of-Survival/releases/download/v1.0.0/module.json",
+    "download": "https://github.com/xxIto/Rawgrim---Toll-of-Survival/releases/download/v1.0.0/rawgrim-toll-of-survival.zip",
     "readme": "https://github.com/xxIto/Rawgrim---Toll-of-Survival/blob/main/README.md",
     "bugs": "https://github.com/xxlto/Rawgrim---Toll-of-Survival/issues",
     "compatibility": {
