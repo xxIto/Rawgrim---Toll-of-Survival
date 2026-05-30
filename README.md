@@ -92,10 +92,10 @@ Rawgrim: The Toll of Survival
 Until the package is listed, install it manually with the release manifest URL:
 
 ```text
-https://github.com/YOUR_GITHUB_USERNAME/rawgrim-toll-of-survival/releases/latest/download/module.json
+https://github.com/xxlto/Rawgrim---Toll-of-Survival/releases/latest/download/module.json
 ```
 
-Replace `YOUR_GITHUB_USERNAME` with the final GitHub account or organization name.
+This URL points to the latest published GitHub release manifest.
 
 ### Manual Installation
 
