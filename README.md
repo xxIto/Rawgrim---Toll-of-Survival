@@ -132,8 +132,8 @@ Before publishing a new version:
 1. Update `version` in `module.json`.
 2. Update the `download` URL in `module.json` to the matching tag.
 3. Update `CHANGELOG.md`.
-4. Create a ZIP where `module.json` is at the root of the archive.
-5. Attach both `module.json` and `rawgrim-toll-of-survival.zip` to the GitHub release.
+4. Create a ZIP named `module.zip` where `module.json` is at the root of the archive.
+5. Attach both `module.json` and `module.zip` to the GitHub release.
 6. Test installation from the release manifest URL.
 
 ## Legal

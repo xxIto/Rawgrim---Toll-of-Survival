@@ -7,7 +7,7 @@ $ErrorActionPreference = "Stop"
 $Root = Resolve-Path (Join-Path $PSScriptRoot "..")
 $Dist = Join-Path $Root "dist"
 $PackageName = "rawgrim-toll-of-survival"
-$ZipPath = Join-Path $Dist "$PackageName.zip"
+$ZipPath = Join-Path $Dist "module.zip"
 
 if (Test-Path $Dist) {
     Remove-Item -LiteralPath $Dist -Recurse -Force
