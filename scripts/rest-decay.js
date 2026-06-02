@@ -1,8 +1,3 @@
-/**
- * Rawgrim: The Toll of Survival
- * Module 4: Rest Decay Management (Version 14.5)
- */
-
 globalThis.RawgrimSurvival = globalThis.RawgrimSurvival || {};
 
 Hooks.on("dnd5e.shortRest", async (actor, result) => {

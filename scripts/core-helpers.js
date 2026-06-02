@@ -1,8 +1,3 @@
-/**
- * Rawgrim: The Toll of Survival
- * Module 1: Core Helpers & Shared Namespace (Version 14.5)
- */
-
 globalThis.RawgrimSurvival = globalThis.RawgrimSurvival || {};
 
 Hooks.once('init', () => {

@@ -1,8 +1,3 @@
-/**
- * Rawgrim: The Toll of Survival
- * GM Dashboard Foundation
- */
-
 globalThis.RawgrimSurvival = globalThis.RawgrimSurvival || {};
 
 Object.assign(globalThis.RawgrimSurvival, {

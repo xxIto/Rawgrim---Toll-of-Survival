@@ -1,23 +1,15 @@
-/**
- * Rawgrim: The Toll of Survival
- * Module 6: Sustenance & Logistics Deprivation Tracker (Version 16.0)
- */
-
 globalThis.RawgrimSurvival = globalThis.RawgrimSurvival || {};
 
-// ARSITEKTUR TRANSAKSI ATOMIK SEKUENSEAL: Menghitung Akurasi Logistik Tanpa Kontaminasi Wadah
 async function eksekusiKonsumsiLogistikTerpadu(actor, foodAmount, waterAmount) {
     const updates = [];
 
-    // Fungsi pembantu internal untuk mereduksi stok komoditas fisik secara presisi
     const prosesPemotonganKomoditas = (keywords, amountNeeded) => {
         let leftToDeduct = amountNeeded;
         if (leftToDeduct <= 0) return;
 
-        // FILTER EKSKLUSIF: Menyaring barang tetapi memblokir total item bertipe 'waterskin'
         const targets = actor.items.filter(i => {
             const n = i.name?.toLowerCase() || "";
-            if (n.includes('waterskin')) return false; // Abaikan wadah penampung
+            if (n.includes('waterskin')) return false;
             return keywords.some(k => n.includes(k));
         });
 
@@ -31,7 +23,6 @@ async function eksekusiKonsumsiLogistikTerpadu(actor, foodAmount, waterAmount) {
             const usesVal = Number(item.system?.uses?.value) || 0;
 
             if (usesMax > 0) {
-                // Jalur A: Jika item logistik tersebut memiliki charges internal
                 let totalAvailableCharges = usesVal + ((qty - 1) * usesMax);
 
                 if (totalAvailableCharges >= leftToDeduct) {
@@ -59,7 +50,6 @@ async function eksekusiKonsumsiLogistikTerpadu(actor, foodAmount, waterAmount) {
                     });
                 }
             } else {
-                // Jalur B: Jika item logistik berupa tumpukan kuantitas murni (Ration & Water Pint)
                 if (qty >= leftToDeduct) {
                     updates.push({
                         _id: item.id,
@@ -77,11 +67,9 @@ async function eksekusiKonsumsiLogistikTerpadu(actor, foodAmount, waterAmount) {
         }
     };
 
-    // Jalankan reduksi logistik linear berdasarkan input bersih dari ledger
     prosesPemotonganKomoditas(['ration', 'food'], foodAmount);
     prosesPemotonganKomoditas(['water', 'drink', 'quench'], waterAmount);
 
-    // Satukan payload perubahan ke satu pintu transaksi tunggal untuk mencegah bug tumpang tindih ID
     if (updates.length > 0) {
         const uniqueUpdatesMap = new Map();
         for (let u of updates) {
@@ -119,13 +107,11 @@ globalThis.RawgrimSurvival.bukaDialogSustenanceLedger = function(actor, restType
     let physicalWaterCount = 0;
     const currentGold = actor.system.currency?.gp || 0;
 
-    // MESIN PEMINDAI INTELLIGENT MANIFEST: Memetakan keaslian data logistik riil aktor
     actor.items.forEach(i => {
         const name = i.name?.toLowerCase() || "";
         const qty = i.system?.quantity || 0;
         if (qty <= 0) return;
 
-        // PROTEKSI ABSOLUT: Gagalkan pemindaian jika nama barang terdeteksi sebagai wadah/waterskin
         if (name.includes('waterskin')) return;
 
         const usesMax = Number(i.system?.uses?.max) || 0;

@@ -1,8 +1,3 @@
-/**
- * Rawgrim: The Toll of Survival
- * Module 2: Catalyst Upstream Gatekeeper & Unified Spell Hook (Version 14.5)
- */
-
 globalThis.RawgrimSurvival = globalThis.RawgrimSurvival || {};
 
 Hooks.once('setup', () => {

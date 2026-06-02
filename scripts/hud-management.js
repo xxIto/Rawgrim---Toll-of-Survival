@@ -1,8 +1,3 @@
-/**
- * Rawgrim: The Toll of Survival
- * Module 5: Token HUD & Configuration Jendela Dialog (Version 14.5)
- */
-
 globalThis.RawgrimSurvival = globalThis.RawgrimSurvival || {};
 
 Hooks.on('renderTokenHUD', (hud, html, data) => {

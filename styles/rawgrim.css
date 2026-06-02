@@ -1,18 +1,13 @@
-/* ========================================================================
-   RAWGRIM CORE AESTHETIC: TOLL OF SURVIVAL (ELDEN RING INTEGRATION)
-   ======================================================================== */
-
-/* Kontainer Utama Kartu Obrolan & Sistem */
 .rawgrim-backlash-prompt-card,
 .rawgrim-cantrip-roll-card,
 .rawgrim-catalyst-roll-card,
 .rawgrim-durability-roll-card,
 .rawgrim-injury-roll-card,
 .rawgrim-sys-card {
-  font-family: var(--rawgrim-font-main) !important; /* Terhubung ke Cinzel */
+  font-family: var(--rawgrim-font-main) !important; 
   background: transparent !important;
   border: 1px solid var(--elden-border) !important;
-  border-top: 2px solid #541e1e !important; /* Aksen merah darah dipertahankan */
+  border-top: 2px solid #541e1e !important; 
   border-radius: 0px !important;
   box-shadow: none !important;
   padding: 14px !important;
@@ -20,7 +15,6 @@
   position: relative;
 }
 
-/* Modifikasi Warna Pembatas Sesuai Konteks Kelangkaan */
 .rawgrim-sys-card.catalyst {
   border-top-color: var(--elden-gold) !important;
 }
@@ -59,7 +53,6 @@
   padding: 12px 10px !important;
 }
 
-/* Judul Kartu - Tipografi Utama */
 .rawgrim-card-title {
   font-family: var(--rawgrim-font-main) !important;
   font-size: 1.05em;
@@ -74,7 +67,6 @@
   text-align: center;
 }
 
-/* Sub-teks Chronicle Batasan Survival */
 .rawgrim-card-sub {
   font-family: var(--rawgrim-font-main) !important;
   font-size: 0.92em;
@@ -93,7 +85,6 @@
   text-align: left;
 }
 
-/* Tabel Kompak Parameter Angka */
 .rawgrim-table-compact {
   width: 100%;
   border-collapse: collapse;
@@ -116,7 +107,6 @@
   font-weight: 700;
 }
 
-/* Sel Angka Menggunakan Monospace agar sejajar rapi */
 .rawgrim-table-compact td {
   font-family: var(--rawgrim-font-mono) !important;
   font-size: 1em;
@@ -298,7 +288,6 @@
   color: #2b2118 !important;
 }
 
-/* Kisi Kendali Tombol GM */
 .rawgrim-gm-grid {
   display: flex;
   flex-direction: column;
@@ -332,7 +321,6 @@
   border-color: var(--elden-gold) !important;
 }
 
-/* Tombol Bahaya (Merah) */
 .rawgrim-btn-danger-flat {
   background: #1a0b0b !important;
   color: #c29999 !important;
@@ -345,7 +333,6 @@
   border-color: #8c2222 !important;
 }
 
-/* Tombol Sukses (Hijau) */
 .rawgrim-btn-success-flat {
   background: #0d1a11 !important;
   color: #99c2a1 !important;
@@ -358,7 +345,6 @@
   border-color: #2e7a41 !important;
 }
 
-/* Peluas Ukuran Jendela Dialog Kustom */
 .rawgrim-dialog-window-large {
   min-width: 420px !important;
 }
@@ -786,7 +772,6 @@
   margin: 0;
 }
 
-/* Baris Pengaturan Jumlah Logistik */
 .rawgrim-sustenance-row {
   display: flex;
   justify-content: space-between;
@@ -805,7 +790,6 @@
   color: var(--elden-text-muted);
 }
 
-/* Kotak Kontrol Angka Konsumsi */
 .rawgrim-sustenance-control {
   display: flex;
   align-items: center;
@@ -821,7 +805,6 @@
   text-align: center;
 }
 
-/* Indikator Tiga Fase Warna Dinamis (Pendaran Dihapus) */
 .rg-status-zero {
   color: #8c2222 !important;
   text-shadow: none !important;
@@ -843,7 +826,6 @@
   text-shadow: none !important;
 }
 
-/* Sektor Gaya Hidup Koin Down Time */
 .rawgrim-lifestyle-box {
   background: var(--elden-bg-darker);
   border: 1px solid var(--elden-border);
@@ -860,7 +842,6 @@
   margin-top: 4px;
 }
 
-/* Prasasti Peringatan Bahaya Kelaparan */
 .rawgrim-sustenance-warning {
   border: 1px solid #541e1e;
   background: #140505;
@@ -868,9 +849,6 @@
   margin-top: 12px;
 }
 
-/* ========================================================================
-   CRITICAL BREAKDOWN OVERLAY: CINEMATIC SHATTER 
-   ======================================================================== */
 #rawgrim-cinematic-notice,
 #rawgrim-shatter-overlay,
 #rawgrim-cinematic-splash {
@@ -879,7 +857,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(11, 11, 10, 0.96); /* Diselaraskan dengan arang gelap */
+  background: rgba(11, 11, 10, 0.96); 
   z-index: 9999999;
   display: flex;
   flex-direction: column;
@@ -920,7 +898,7 @@
   letter-spacing: 5px;
   margin: 0;
   font-weight: normal;
-  text-shadow: none !important; /* Pendaran bayangan teks dilepas */
+  text-shadow: none !important; 
 }
 
 .rawgrim-shatter-text {
@@ -931,12 +909,6 @@
   font-style: italic;
 }
 
-
-/* ==========================================================================
-   ELDEN RING UI CORE - PAUSE SCREEN & JOURNAL INTEGRATION
-   ========================================================================== */
-
-/* --- BUKU LORE & JURNAL (JOURNAL SHEETS) --- */
 html body .journal-sheet .window-content,
 html body .journal-sheet .journal-entry-content,
 html body .journal-sheet .journal-page-content,
@@ -968,7 +940,6 @@ html body .journal-sidebar {
     border-right: 1px solid var(--elden-border) !important;
 }
 
-/* --- JENDELA DIALOG KEPUTUSAN (CONFIRMATION POP-UPS) --- */
 html body .dialog .window-content {
     background: var(--elden-bg-dark) !important;
     color: var(--elden-text-main) !important;

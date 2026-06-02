@@ -1,8 +1,3 @@
-/**
- * Rawgrim: The Toll of Survival
- * Module 3: Soul Resonance & Backlash Card Engine (Version 14.5)
- */
-
 globalThis.RawgrimSurvival = globalThis.RawgrimSurvival || {};
 
 globalThis.RawgrimSurvival.tampilkanShatterLayarTengah = function() {
